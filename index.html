@@ -1,61 +1,5 @@
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>SSL PyTorch Code</title>
-    <style>
-        body {
-            font-family: Consolas, monospace;
-            background: #0f172a;
-            color: #e2e8f0;
-            padding: 20px;
-        }
-        h1, h2 {
-            text-align: center;
-        }
-        .exp {
-            margin-bottom: 20px;
-            padding: 10px;
-            background: #1e293b;
-            border-radius: 8px;
-        }
-        pre {
-            background: #1e293b;
-            padding: 20px;
-            border-radius: 10px;
-            overflow-x: auto;
-            white-space: pre;
-        }
-        button {
-            margin-bottom: 10px;
-            padding: 10px 20px;
-            background: #38bdf8;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        button:hover {
-            background: #0ea5e9;
-        }
-    </style>
-</head>
-<body>
-
-<h1>Self-Supervised Learning Code</h1>
-
-<div class="exp">
-    <h2>Experiment No: 1</h2>
-    <h2>Title: Implementation of Self-Supervised Learning using Contrastive Learning on CIFAR-10 with PyTorch and Visualization using t-SNE</h2>
-</div>
-
-<button onclick="copyCode()">Copy Code</button>
-
-<pre id="codeBlock"></pre>
-
-<script>
-const code = `import torch
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms as transforms
@@ -64,6 +8,9 @@ from torch.utils.data import DataLoader
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 
+# ----------------------------------------------------------
+# 1. Simple Augmentation
+# ----------------------------------------------------------
 class SimpleAugmentation:
     def __init__(self):
         self.transform = transforms.Compose([
@@ -74,6 +21,9 @@ class SimpleAugmentation:
     def __call__(self, x):
         return self.transform(x), self.transform(x)
 
+# ----------------------------------------------------------
+# 2. Dataset & DataLoader
+# ----------------------------------------------------------
 dataset = CIFAR10(
     root="./data",
     train=True,
@@ -83,6 +33,9 @@ dataset = CIFAR10(
 
 loader = DataLoader(dataset, batch_size=32, shuffle=True)
 
+# ----------------------------------------------------------
+# 3. Lightweight CNN Encoder
+# ----------------------------------------------------------
 class SimpleEncoder(nn.Module):
     def __init__(self):
         super(SimpleEncoder, self).__init__()
@@ -98,6 +51,9 @@ class SimpleEncoder(nn.Module):
     def forward(self, x):
         return self.net(x)
 
+# ----------------------------------------------------------
+# 4. Projection Head
+# ----------------------------------------------------------
 class SSLModel(nn.Module):
     def __init__(self):
         super(SSLModel, self).__init__()
@@ -108,11 +64,17 @@ class SSLModel(nn.Module):
         features = self.encoder(x)
         return self.projector(features)
 
+# ----------------------------------------------------------
+# 5. Contrastive Loss
+# ----------------------------------------------------------
 def contrastive_loss(z1, z2):
     z1 = F.normalize(z1, dim=1)
     z2 = F.normalize(z2, dim=1)
     return 1 - F.cosine_similarity(z1, z2).mean()
 
+# ----------------------------------------------------------
+# 6. Training
+# ----------------------------------------------------------
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print("Using device:", device)
 
@@ -123,10 +85,13 @@ epochs = 2
 
 for epoch in range(epochs):
     total_loss = 0.0
+
     for (x1, x2), _ in loader:
         x1, x2 = x1.to(device), x2.to(device)
+
         z1 = model(x1)
         z2 = model(x2)
+
         loss = contrastive_loss(z1, z2)
 
         optimizer.zero_grad()
@@ -137,18 +102,24 @@ for epoch in range(epochs):
 
     print(f"Epoch {epoch+1}/{epochs}, Loss: {total_loss/len(loader):.4f}")
 
+# ----------------------------------------------------------
+# 7. Feature Extraction
+# ----------------------------------------------------------
 model.eval()
 
 with torch.no_grad():
     batch = next(iter(loader))
     (x1, x2), labels = batch
-    imgs = x1.to(device)
 
+    imgs = x1.to(device)
     features = model.encoder(imgs).cpu().numpy()
     labels = labels.numpy()
 
 print("Feature Shape:", features.shape)
 
+# ----------------------------------------------------------
+# 8. t-SNE Visualization
+# ----------------------------------------------------------
 tsne = TSNE(n_components=2, random_state=42)
 features_2d = tsne.fit_transform(features)
 
@@ -162,16 +133,4 @@ plt.legend()
 plt.title("SSL Feature Embeddings (t-SNE)")
 plt.xlabel("t-SNE Dim 1")
 plt.ylabel("t-SNE Dim 2")
-plt.show()`;
-
-document.getElementById("codeBlock").textContent = code;
-
-function copyCode() {
-    navigator.clipboard.writeText(code).then(() => {
-        alert("Code copied correctly!");
-    });
-}
-</script>
-
-</body>
-</html>
+plt.show()
