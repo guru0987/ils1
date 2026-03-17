@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,7 +6,7 @@
     <title>SSL PyTorch Code</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: Consolas, monospace;
             background: #0f172a;
             color: #e2e8f0;
             padding: 20px;
@@ -24,6 +25,7 @@
             padding: 20px;
             border-radius: 10px;
             overflow-x: auto;
+            white-space: pre;
         }
         button {
             margin-bottom: 10px;
@@ -50,8 +52,10 @@
 
 <button onclick="copyCode()">Copy Code</button>
 
-<pre id="codeBlock">
-import torch
+<pre id="codeBlock"></pre>
+
+<script>
+const code = `import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms as transforms
@@ -124,10 +128,13 @@ for epoch in range(epochs):
         z1 = model(x1)
         z2 = model(x2)
         loss = contrastive_loss(z1, z2)
+
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+
         total_loss += loss.item()
+
     print(f"Epoch {epoch+1}/{epochs}, Loss: {total_loss/len(loader):.4f}")
 
 model.eval()
@@ -136,6 +143,7 @@ with torch.no_grad():
     batch = next(iter(loader))
     (x1, x2), labels = batch
     imgs = x1.to(device)
+
     features = model.encoder(imgs).cpu().numpy()
     labels = labels.numpy()
 
@@ -154,14 +162,13 @@ plt.legend()
 plt.title("SSL Feature Embeddings (t-SNE)")
 plt.xlabel("t-SNE Dim 1")
 plt.ylabel("t-SNE Dim 2")
-plt.show()
-</pre>
+plt.show()`;
 
-<script>
+document.getElementById("codeBlock").textContent = code;
+
 function copyCode() {
-    const code = document.getElementById("codeBlock").innerText;
     navigator.clipboard.writeText(code).then(() => {
-        alert("Code copied to clipboard!");
+        alert("Code copied correctly!");
     });
 }
 </script>
